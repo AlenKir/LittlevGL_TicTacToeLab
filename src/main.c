@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <time.h>
 #include "lvgl/lvgl.h"
+#include "lv_tutorial_hello_world.h"
 
 //-----------------------------------------------------------------------------
 // Display wrapper structures and functions
@@ -26,11 +27,61 @@ typedef struct {
     SDL_Renderer *renderer;
 } demo_display_t;
 
+lv_obj_t *buttons[9]; // массив кнопок
+
 int demo_display_init(demo_display_t *demo_disp, int width, int height);
 int demo_display_deinit(demo_display_t *monitor);
 int demo_display_process_events(demo_display_t *demo_disp);
 int demo_display_fill_rect(demo_display_t *demo_disp, int x1, int y1, int x2, int y2, uint16_t *colors);
 int demo_display_draw_rect(demo_display_t *demo_disp, int x1, int y1, int x2, int y2, uint16_t color);
+
+static void event_handler(lv_obj_t * obj, lv_event_t event)
+{
+    if(event == LV_EVENT_CLICKED) {
+        printf("Clicked on the 1st button\n");
+    }
+    else if(event == LV_EVENT_VALUE_CHANGED) {
+        printf("Toggled on the 1st button?\n");
+    }
+}
+
+void lv_ex_btn_1(void)
+{
+//    lv_obj_t * label;
+//
+//    lv_obj_t * btn1 = lv_btn_create(lv_scr_act(), NULL);
+//    lv_obj_set_event_cb(btn1, event_handler);
+//    lv_obj_align(btn1, NULL, LV_ALIGN_CENTER, 0, -40);
+//
+//    label = lv_label_create(btn1, NULL);
+//    lv_label_set_text(label, " ");
+
+//    lv_obj_t * btn2 = lv_btn_create(lv_scr_act(), NULL);
+//    lv_obj_set_event_cb(btn2, event_handler);
+//    lv_obj_align(btn2, NULL, LV_ALIGN_CENTER, 0, 40);
+//    lv_btn_set_toggle(btn2, true);
+//    lv_btn_toggle(btn2);
+//    lv_btn_set_fit2(btn2, LV_FIT_NONE, LV_FIT_TIGHT);
+//
+//    label = lv_label_create(btn2, NULL);
+//    lv_label_set_text(label, "Toggled");
+}
+
+//void lv_tutorial_hello_world(void)
+//{
+//    lv_obj_t * scr = lv_disp_get_scr_act(NULL);     /*Get the current screen*/
+//
+//    /*Create a Label on the currently active screen*/
+//    lv_obj_t * label1 =  lv_label_create(scr, NULL);
+//
+//    /*Modify the Label's text*/
+//    lv_label_set_text(label1, "Hello world!");
+//
+//    /* Align the Label to the center
+//     * NULL means align on parent (which is the screen now)
+//     * 0, 0 at the end means an x, y offset after alignment*/
+//    lv_obj_align(label1, NULL, LV_ALIGN_CENTER, 0, 0);
+//}
 
 /**
  * Initialize SDL and demo display.
@@ -399,7 +450,7 @@ int main(int n, char **args) {
     int ret_code = 0;
     demo_display_t demo_disp;
     int width = 240;
-    int height = 320;
+    int height = 240;
     demo_lvgl_disp_t demo_lvgl_diplay;
 
     // prepare window
@@ -415,11 +466,30 @@ int main(int n, char **args) {
     }
 
     // initialize demo application
-    demo_app_t app;
-    err = demo_app_init(&app);
-    if (err) {
-        return err;
+//    demo_app_t app;
+//    err = demo_app_init(&app);
+//    if (err) {
+//        return err;
+//    }
+
+//    lv_ex_btn_1();
+    // создаем кнопки
+
+    // TODO алгоритм для координат нормальный
+    int coord_x = -80;
+    int coord_y = -80;
+
+    for (int i = 0; i < 9; i++)
+    {
+        buttons[i] = lv_btn_create(lv_scr_act(), NULL);
+        lv_obj_set_event_cb(buttons[i], event_handler);
+        lv_obj_align(buttons[i], NULL, LV_ALIGN_CENTER, coord_x, coord_y);
+        coord_x = coord_x + 10;
+        coord_y = coord_y + 10;
     }
+
+//    label1 = lv_label_create(btn1, NULL);
+//    lv_label_set_text(label1, " ");
 
     // some application and LittlevGL logic
 
@@ -428,8 +498,8 @@ int main(int n, char **args) {
 
     while (1) {
         // update app label
-        uint32_t current_msec = SDL_GetTicks() - app.ms_offset;
-        lv_label_set_text_fmt(app.time_label, "%02i:%05i", current_msec / 60000, current_msec % 60000);
+//        uint32_t current_msec = SDL_GetTicks() - app.ms_offset;
+//        lv_label_set_text_fmt(app.time_label, "%02i:%05i", current_msec / 60000, current_msec % 60000);
 
         // read SDL events
         err = demo_display_process_events(&demo_disp);

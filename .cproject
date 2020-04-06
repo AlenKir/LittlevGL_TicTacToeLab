@@ -33,6 +33,7 @@
 								</option>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.compiler.option.include.paths.1950929104" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;C:\Users\Alena_Adm\eclipse-workspace\LittlevGL3&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Users\Alena_Adm\eclipse-workspace\LittlevGL3\lvgl&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1984161481" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
