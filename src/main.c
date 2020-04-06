@@ -27,7 +27,10 @@ typedef struct {
     SDL_Renderer *renderer;
 } demo_display_t;
 
-lv_obj_t *buttons[9]; // массив кнопок
+lv_obj_t *buttons[9]; // buttons
+lv_obj_t *labels[9]; // ...
+int button_pressed;
+bool symbol; //true - x, false - o
 
 int demo_display_init(demo_display_t *demo_disp, int width, int height);
 int demo_display_deinit(demo_display_t *monitor);
@@ -37,11 +40,19 @@ int demo_display_draw_rect(demo_display_t *demo_disp, int x1, int y1, int x2, in
 
 static void event_handler(lv_obj_t * obj, lv_event_t event)
 {
-    if(event == LV_EVENT_CLICKED) {
-        printf("Clicked on the 1st button\n");
-    }
-    else if(event == LV_EVENT_VALUE_CHANGED) {
-        printf("Toggled on the 1st button?\n");
+    if(event == LV_EVENT_PRESSED)
+    {
+        for (int i = 0; i < 9; i++)
+        {
+        	if (lv_btn_get_state(buttons[i]) == LV_BTN_STATE_PR){
+        		printf("Clicked on the %d button \n", i+1);
+        		if (symbol)
+        			lv_label_set_text(labels[i], "x");
+        		else
+        			lv_label_set_text(labels[i], "o");
+        		symbol = !symbol;
+        	}
+        }
     }
 }
 
@@ -101,7 +112,7 @@ int demo_display_init(demo_display_t *demo_disp, int width, int height) {
     // create window
     demo_disp->width = width;
     demo_disp->height = height;
-    demo_disp->window = SDL_CreateWindow("SDL Tutorial", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_SHOWN);
+    demo_disp->window = SDL_CreateWindow("Tic Tac Toe", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_SHOWN);
     if (demo_disp->window == NULL) {
         fprintf(stderr, "SDL_CreateWindow Error: %s\n", SDL_GetError());
         return -1;
@@ -232,38 +243,38 @@ int demo_display_fill_rect(demo_display_t *demo_disp, int x1, int y1, int x2, in
 /**
  * Helper function to draw filled rectangle with demo_display_fill_rect.
  */
-int demo_display_draw_rect(demo_display_t *demo_disp, int x1, int y1, int x2, int y2, uint16_t color) {
-    // check rectangle coordinates
-    int tmp;
-    x1 = x1 < 0 ? 0 : x1;
-    x1 = x1 >= demo_disp->width ? demo_disp->width - 1 : x1;
-    x2 = x2 < 0 ? 0 : x2;
-    x2 = x2 >= demo_disp->width ? demo_disp->width - 1 : x2;
-    y1 = y1 < 0 ? 0 : y1;
-    y1 = y1 >= demo_disp->height ? demo_disp->height - 1 : y1;
-    y2 = y2 < 0 ? 0 : y2;
-    y2 = y2 >= demo_disp->height ? demo_disp->height - 1 : y2;
-    if (x1 > x2) {
-        tmp = x2;
-        x2 = x1;
-        x1 = tmp;
-    }
-    if (y1 > y2) {
-        tmp = y2;
-        y2 = y1;
-        y1 = tmp;
-    }
-
-    // allocate and fill array with colors
-    int rect_size = (x2 - x1 + 1) * (y2 - y1 + 1);
-    uint16_t colors[rect_size];
-    for (int i = 0; i < rect_size; i++) {
-        colors[i] = color;
-    }
-
-    // render rectangle
-    return demo_display_fill_rect(demo_disp, x1, y1, x2, y2, colors);
-}
+//int demo_display_draw_rect(demo_display_t *demo_disp, int x1, int y1, int x2, int y2, uint16_t color) {
+//    // check rectangle coordinates
+//    int tmp;
+//    x1 = x1 < 0 ? 0 : x1;
+//    x1 = x1 >= demo_disp->width ? demo_disp->width - 1 : x1;
+//    x2 = x2 < 0 ? 0 : x2;
+//    x2 = x2 >= demo_disp->width ? demo_disp->width - 1 : x2;
+//    y1 = y1 < 0 ? 0 : y1;
+//    y1 = y1 >= demo_disp->height ? demo_disp->height - 1 : y1;
+//    y2 = y2 < 0 ? 0 : y2;
+//    y2 = y2 >= demo_disp->height ? demo_disp->height - 1 : y2;
+//    if (x1 > x2) {
+//        tmp = x2;
+//        x2 = x1;
+//        x1 = tmp;
+//    }
+//    if (y1 > y2) {
+//        tmp = y2;
+//        y2 = y1;
+//        y1 = tmp;
+//    }
+//
+//    // allocate and fill array with colors
+//    int rect_size = (x2 - x1 + 1) * (y2 - y1 + 1);
+//    uint16_t colors[rect_size];
+//    for (int i = 0; i < rect_size; i++) {
+//        colors[i] = color;
+//    }
+//
+//    // render rectangle
+//    return demo_display_fill_rect(demo_disp, x1, y1, x2, y2, colors);
+//}
 
 //-----------------------------------------------------------------------------
 // LittlevGL driver port
@@ -412,44 +423,44 @@ static void demo_app_reset_btn_cb(lv_obj_t *reset_btn, lv_event_t event)
 /**
  * Initialize demo application.
  */
-int demo_app_init(demo_app_t *demo) {
-
-    // get active screen
-    demo->scr = lv_scr_act();
-    // create screen style
-    lv_style_copy(&demo->scr_style, &lv_style_plain);
-    demo->scr_style.body.main_color = LV_COLOR_BLUE;
-    demo->scr_style.body.grad_color = lv_color_hex(0xffd83c);
-    lv_obj_set_style(demo->scr, &demo->scr_style);
-
-    // create timer label
-    demo->time_label = lv_label_create(demo->scr, NULL);
-    lv_style_copy(&demo->time_label_style, &lv_style_pretty_color);
-    lv_label_set_long_mode(demo->time_label, LV_LABEL_LONG_CROP);
-    lv_obj_set_size(demo->time_label, 100, 30);
-    lv_obj_set_pos(demo->time_label, 70, 50);
-    lv_label_set_align(demo->time_label, LV_LABEL_ALIGN_CENTER);
-    lv_label_set_style(demo->time_label, LV_LABEL_STYLE_MAIN, &demo->time_label_style);
-    lv_label_set_body_draw(demo->time_label, 1);
-    lv_label_set_text(demo->time_label, "00:00");
-
-    // create button
-    demo->reset_btn = lv_btn_create(demo->scr, NULL);
-    lv_obj_set_size(demo->reset_btn, 120, 60);
-    lv_obj_set_pos(demo->reset_btn, 60, 200);
-    demo->reset_btn_label = lv_label_create(demo->reset_btn, NULL);
-    lv_label_set_text(demo->reset_btn_label, "RESET");
-    demo->reset_btn->user_data = demo;
-    lv_obj_set_event_cb(demo->reset_btn, demo_app_reset_btn_cb);
-
-    return 0;
-}
+//int demo_app_init(demo_app_t *demo) {
+//
+//    // get active screen
+//    demo->scr = lv_scr_act();
+//    // create screen style
+//    lv_style_copy(&demo->scr_style, &lv_style_plain);
+//    demo->scr_style.body.main_color = LV_COLOR_BLUE;
+//    demo->scr_style.body.grad_color = lv_color_hex(0xffd83c);
+//    lv_obj_set_style(demo->scr, &demo->scr_style);
+//
+//    // create timer label
+//    demo->time_label = lv_label_create(demo->scr, NULL);
+//    lv_style_copy(&demo->time_label_style, &lv_style_pretty_color);
+//    lv_label_set_long_mode(demo->time_label, LV_LABEL_LONG_CROP);
+//    lv_obj_set_size(demo->time_label, 100, 30);
+//    lv_obj_set_pos(demo->time_label, 70, 50);
+//    lv_label_set_align(demo->time_label, LV_LABEL_ALIGN_CENTER);
+//    lv_label_set_style(demo->time_label, LV_LABEL_STYLE_MAIN, &demo->time_label_style);
+//    lv_label_set_body_draw(demo->time_label, 1);
+//    lv_label_set_text(demo->time_label, "00:00");
+//
+//    // create button
+//    demo->reset_btn = lv_btn_create(demo->scr, NULL);
+//    lv_obj_set_size(demo->reset_btn, 120, 60);
+//    lv_obj_set_pos(demo->reset_btn, 60, 200);
+//    demo->reset_btn_label = lv_label_create(demo->reset_btn, NULL);
+//    lv_label_set_text(demo->reset_btn_label, "RESET");
+//    demo->reset_btn->user_data = demo;
+//    lv_obj_set_event_cb(demo->reset_btn, demo_app_reset_btn_cb);
+//
+//    return 0;
+//}
 
 int main(int n, char **args) {
     int err;
     int ret_code = 0;
     demo_display_t demo_disp;
-    int width = 240;
+    int width = 320;
     int height = 240;
     demo_lvgl_disp_t demo_lvgl_diplay;
 
@@ -473,19 +484,29 @@ int main(int n, char **args) {
 //    }
 
 //    lv_ex_btn_1();
-    // создаем кнопки
 
-    // TODO алгоритм для координат нормальный
-    int coord_x = -80;
-    int coord_y = -80;
+    symbol = true;
 
+    // coord caclulation
+    int coord_x = -120;
+    int coord_y = -130;
     for (int i = 0; i < 9; i++)
     {
         buttons[i] = lv_btn_create(lv_scr_act(), NULL);
         lv_obj_set_event_cb(buttons[i], event_handler);
         lv_obj_align(buttons[i], NULL, LV_ALIGN_CENTER, coord_x, coord_y);
-        coord_x = coord_x + 10;
-        coord_y = coord_y + 10;
+        if (i == 2 | i == 5) {
+        	coord_x = -120;
+        	coord_y = coord_y + 75;
+        }
+        else
+        	coord_x = coord_x + 105;
+        labels[i] = lv_label_create(buttons[i], NULL);
+//        char str[2];
+//        int digit = i+1;
+//        str[0] = digit + '0';
+//        str[1] = 0;
+        lv_label_set_text(labels[i], " ");
     }
 
 //    label1 = lv_label_create(btn1, NULL);
