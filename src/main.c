@@ -30,12 +30,147 @@ lv_obj_t *buttons[9]; // buttons
 lv_obj_t *labels[9]; // ...
 int button_pressed;
 bool symbol; //true - x, false - o
+lv_obj_t * label;
+int downcount;
+bool waiting_is_on;
 
 int demo_display_init(demo_display_t *demo_disp, int width, int height);
 int demo_display_deinit(demo_display_t *monitor);
 int demo_display_process_events(demo_display_t *demo_disp);
 int demo_display_fill_rect(demo_display_t *demo_disp, int x1, int y1, int x2, int y2, uint16_t *colors);
 int demo_display_draw_rect(demo_display_t *demo_disp, int x1, int y1, int x2, int y2, uint16_t color);
+
+bool check_for_3(bool x){
+	char *s;
+	if (x)
+		s = "x";
+	else
+		s = "o";
+	if (
+		strcmp(lv_label_get_text(labels[0]), s) == 0
+		& strcmp(lv_label_get_text(labels[1]), s) == 0
+		& strcmp(lv_label_get_text(labels[2]), s) == 0
+			)
+		return true;
+	if (
+		strcmp(lv_label_get_text(labels[0]), s) == 0
+		& strcmp(lv_label_get_text(labels[4]), s) == 0
+		& strcmp(lv_label_get_text(labels[8]), s) == 0
+			)
+		return true;
+	if (
+		strcmp(lv_label_get_text(labels[0]), s) == 0
+		& strcmp(lv_label_get_text(labels[3]), s) == 0
+		& strcmp(lv_label_get_text(labels[6]), s) == 0
+			)
+		return true;
+	if (
+		strcmp(lv_label_get_text(labels[1]), s) == 0
+		& strcmp(lv_label_get_text(labels[4]), s) == 0
+		& strcmp(lv_label_get_text(labels[7]), s) == 0
+			)
+		return true;
+	if (
+		strcmp(lv_label_get_text(labels[2]), s) == 0
+		& strcmp(lv_label_get_text(labels[5]), s) == 0
+		& strcmp(lv_label_get_text(labels[8]), s) == 0
+			)
+		return true;
+	if (
+		strcmp(lv_label_get_text(labels[3]), s) == 0
+		& strcmp(lv_label_get_text(labels[4]), s) == 0
+		& strcmp(lv_label_get_text(labels[5]), s) == 0
+			)
+		return true;
+	if (
+		strcmp(lv_label_get_text(labels[6]), s) == 0
+		& strcmp(lv_label_get_text(labels[7]), s) == 0
+		& strcmp(lv_label_get_text(labels[8]), s) == 0
+			)
+		return true;
+	if (
+		strcmp(lv_label_get_text(labels[2]), s) == 0
+		& strcmp(lv_label_get_text(labels[4]), s) == 0
+		& strcmp(lv_label_get_text(labels[6]), s) == 0
+			)
+		return true;
+}
+
+uint32_t time_to_stop;
+
+void clear(){
+	for (int i = 0; i < 9; i++)
+	{
+		lv_label_set_text(labels[i], " ");
+	}
+}
+
+void pause_and_clear(){
+	waiting_is_on = true;
+}
+
+void did_x_win()
+{
+	printf("did_x_win \n");
+	bool win = false;
+
+	win = check_for_3(true);
+
+	if (win) {
+		lv_label_set_text(label, "X WON!");
+		lv_task_handler();
+		pause_and_clear();
+	}
+	else
+	{
+		int sum = 0;
+		for (int i = 0; i <9; i++)
+		{
+			if (strcmp(lv_label_get_text(labels[i]), "x") == 0
+					|
+					strcmp(lv_label_get_text(labels[i]), "o") == 0
+					)
+				sum = sum + 1;
+			printf("sum = %d\n", sum);
+			if (sum == 9) {
+				lv_label_set_text(label, "IT'S A TIE!");
+				pause_and_clear();
+			}
+		}
+	}
+}
+
+void did_o_win()
+{
+	printf("did_o_win \n");
+	bool win = false;
+
+	win = check_for_3(false);
+
+	if (win) {
+		lv_label_set_text(label, "O WON!");
+		 lv_task_handler();
+		pause_and_clear();
+	}
+	else
+	{
+		int sum = 0;
+		for (int i = 0; i <9; i++)
+		{
+			if (strcmp(lv_label_get_text(labels[i]), "x") == 0
+					|
+					strcmp(lv_label_get_text(labels[i]), "o") == 0
+					)
+				sum = sum + 1;
+			printf("sum = %d\n", sum);
+			if (sum == 9) {
+				lv_label_set_text(label, "IT'S A TIE!");
+				lv_task_handler();
+				pause_and_clear();
+			}
+		}
+	}
+}
 
 static void event_handler(lv_obj_t * obj, lv_event_t event)
 {
@@ -45,11 +180,19 @@ static void event_handler(lv_obj_t * obj, lv_event_t event)
         {
         	if (lv_btn_get_state(buttons[i]) == LV_BTN_STATE_PR){
         		printf("Clicked on the %d button \n", i+1);
-        		if (symbol)
+        		if (symbol) {
         			lv_label_set_text(labels[i], "x");
-        		else
+        			lv_label_set_text(label, "now: o");
+        			 lv_task_handler();
+        		}
+        		else {
         			lv_label_set_text(labels[i], "o");
+        			lv_label_set_text(label, "now: x");
+        			lv_task_handler();
+        		}
         		symbol = !symbol;
+        		did_x_win();
+        		did_o_win();
         	}
         }
     }
@@ -307,11 +450,14 @@ int demo_lvgl_deinit(demo_lvgl_disp_t *demo_lvgl_disp) {
 }
 
 int main(int n, char **args) {
+    time_to_stop = 0;
+	waiting_is_on = false;
+	downcount = 0;
     int err;
     int ret_code = 0;
     demo_display_t demo_disp;
     int width = 320;
-    int height = 240;
+    int height = 260;
     demo_lvgl_disp_t demo_lvgl_diplay;
 
     // prepare window
@@ -326,11 +472,17 @@ int main(int n, char **args) {
         return -1;
     }
 
+    label = lv_label_create(lv_scr_act(), NULL);
+    lv_label_set_text(label, "now: x");
+    lv_label_set_align(label, LV_LABEL_ALIGN_CENTER);
+    lv_obj_set_width(label, 150);
+    lv_obj_align(label, NULL, LV_ALIGN_CENTER, -10, -160);
+
     symbol = true;
 
     // coord caclulation
     int coord_x = -120;
-    int coord_y = -130;
+    int coord_y = -110;
     for (int i = 0; i < 9; i++)
     {
         buttons[i] = lv_btn_create(lv_scr_act(), NULL);
@@ -366,6 +518,20 @@ int main(int n, char **args) {
 
         // loop delay
         SDL_Delay(5);
+
+        if (waiting_is_on)
+        {
+        	time_to_stop = SDL_GetTicks() + 5000;
+        	waiting_is_on = false;
+        	printf("We started the pause");
+        }
+
+		if (time_to_stop!=0 & time_to_stop < SDL_GetTicks())
+		{
+			clear();
+			time_to_stop = 0;
+			printf("Cleared and updated the time to stop.");
+		}
     }
 
     // close window
