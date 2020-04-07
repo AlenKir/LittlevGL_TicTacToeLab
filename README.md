@@ -1,7 +1,7 @@
 # LittlevGL_TicTacToeLab
 Working with LittlevGL - a graphic library - to create a simple tic tac toe game for STM32.  
 (Ideally for STM32 but - COVID-19 and no access to it, so just in Eclipse.)  
-Most of the base code and the structure given by the teacher.
+Most of the base code and the structure provided by the teacher.
 
 ## Used this instructions and documentation
 
